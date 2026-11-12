@@ -194,3 +194,80 @@ FreeAI supports MCP for extending model capabilities. To configure:
 3. FreeAI will connect to MCP servers for enhanced tool use
 
 > **Note**: MCP integration requires additional configuration depending on your MCP server implementation. Refer to the MCP documentation for your specific server.
+
+## Server Deployment Requirements
+
+### Minimum Server Requirements
+- **Node.js**: >= 22.0.0 (LTS recommended)
+- **RAM**: 512MB minimum (1GB+ recommended)
+- **Storage**: 100MB for app + database growth
+- **OS**: Linux, macOS, or Windows (Linux recommended for production)
+
+### Required Software
+- Node.js 22+ (https://nodejs.org/)
+- npm (included with Node.js)
+- Ollama (https://ollama.com/download) — for local AI models
+- (Optional) MariaDB/MySQL — if using DB_DRIVER=mariadb
+
+### Environment Variables (Required)
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DB_DRIVER` | Database type | `sqlite` or `mariadb` |
+| `PORT` | Server port | `3000` |
+| `APP_BASE_URL` | Your domain URL | `https://free.prostudio.my` |
+| `SMTP_HOST` | SMTP server | `smtp.hostinger.com` |
+| `SMTP_PORT` | SMTP port | `465` or `587` |
+| `SMTP_SECURE` | Use SSL/TLS | `true` or `false` |
+| `SMTP_USER` | SMTP username | `noreply@yourdomain.com` |
+| `SMTP_PASSWORD` | SMTP password | `your_password` |
+| `SMTP_FROM` | From address | `FreeAI <noreply@yourdomain.com>` |
+
+### Environment Variables (Optional — OAuth)
+| Variable | Description |
+|----------|-------------|
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret |
+| `GITHUB_CLIENT_ID` | GitHub OAuth Client ID |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth Client Secret |
+| `OLLAMA_URL` | Ollama API URL (default: `http://127.0.0.1:11434`) |
+| `DATA_DIR` | Database storage path (default: `./private-data`) |
+
+### Important Notes
+- **Do not commit `.env`** — it contains secrets. Only `.env.example` should be in version control.
+- **SQLite database** is stored in `private-data/` — back up this directory regularly.
+- **Email verification is mandatory** — users cannot sign in without verifying their email.
+- **SMTP must be configured** before registration works. Test with `GET /api/health`.
+- **Ollama must be running** on the server for model listing and chat to work.
+- **Port 3000** must be accessible or behind a reverse proxy.
+- **HTTPS is required** for OAuth callbacks in production.
+- **File permissions**: Ensure `private-data/` is not publicly accessible.
+- **Process management**: Use PM2, systemd, or Docker to keep the server running.
+
+### Reverse Proxy (Nginx Example)
+```nginx
+server {
+    listen 443 ssl;
+    server_name free.prostudio.my;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+```
+
+### Running with PM2
+```bash
+npm install -g pm2
+pm2 start server.mjs --name freeai
+pm2 save
+pm2 startup
+```
+
+### Health Check
+```bash
+curl https://free.prostudio.my/api/health
+# Returns: {"ok":true,"storage":"sqlite","emailConfigured":true}
+```
