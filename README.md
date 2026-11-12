@@ -94,3 +94,58 @@ By using, copying, modifying, or distributing any part of this project, you ackn
 - OAuth credentials, SMTP passwords, and other secrets must be managed securely by the deployer. Never commit real credentials to version control.
 
 **Use responsibly and at your own risk.**
+
+## OAuth Setup — Step by Step
+
+### Google OAuth
+
+**Link to create credentials:** https://console.cloud.google.com/apis/credentials
+
+1. Open the link above and sign in with your Google account
+2. Select or create a Google Cloud project
+3. Click **"+ Create Credentials"** at the top
+4. Select **"OAuth client ID"**
+5. If prompted, click **"Configure Consent Screen"** first:
+   - Select **External** → **Create**
+   - Fill in App name: `FreeAI`, your email for support and developer contact
+   - Click **Save and Continue** (skip Scopes and Test users)
+   - Go back to **Credentials**
+6. Click **"+ Create Credentials"** → **"OAuth client ID"** again
+7. Application type: **Web application**
+8. Name: `FreeAI Web`
+9. Under **Authorized JavaScript origins**, click **+ Add URI**:
+   - Enter: `https://yourdomain.com` (or `http://localhost:3000` for local)
+10. Under **Authorized redirect URIs**, click **+ Add URI**:
+    - Enter: `https://yourdomain.com/auth/google/callback`
+11. Click **Create**
+12. Copy the **Client ID** and **Client Secret** from the popup
+
+### GitHub OAuth
+
+**Link to create credentials:** https://github.com/settings/developers
+
+1. Open the link above and sign in with your GitHub account
+2. Click **"OAuth Apps"** in the left sidebar
+3. Click **"New OAuth App"**
+4. Fill in:
+   - Application name: `FreeAI`
+   - Homepage URL: `https://yourdomain.com`
+   - Authorization callback URL: `https://yourdomain.com/auth/github/callback`
+5. Click **"Register application"**
+6. Copy the **Client ID** shown on the page
+7. Click **"Generate a new client secret"**
+8. Copy the **Client Secret** (shown only once!)
+
+### Where to keep the values
+
+Store all credentials in a file named **`.env`** in the root of the project:
+
+```env
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+GITHUB_CLIENT_ID=your_github_client_id_here
+GITHUB_CLIENT_SECRET=your_github_client_secret_here
+APP_BASE_URL=https://yourdomain.com
+```
+
+> **Security**: Never commit `.env` to version control. Use `.env.example` (included in this repo) as a template with placeholder values. The `.gitignore` already excludes `.env`.
