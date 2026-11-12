@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#080b13">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'">
+<title>FreeAI · Three-model workspace</title>
+<link rel="stylesheet" href="/freeai-style.css">
+<script defer src="/freeai-app.js"></script>
+<style>
+  /* Redesigned auth landing */
+  .auth-landing {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+    background: radial-gradient(ellipse at 20% 30%, rgba(108,140,255,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 70%, rgba(167,139,250,0.06) 0%, transparent 60%);
+  }
+  .auth-landing[hidden] {
+    display: none;
+  }
+  .auth-card {
+    background: #1a2236;
+    border: 1px solid #2a3550;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    text-align: center;
+  }
+  .auth-card .brand-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #6c8cff, #a78bfa);
+    font-size: 32px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 24px rgba(108,140,255,0.3);
+  }
+  .auth-card .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: #8b95b0;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .auth-card h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .auth-card h1 em {
+    font-style: italic;
+    background: linear-gradient(135deg, #6c8cff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .auth-card p {
+    color: #8b95b0;
+    font-size: 15px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .landing-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+  .landing-actions button {
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .green-button {
+    background: linear-gradient(135deg, #6c8cff, #a78bfa);
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 16px rgba(108,140,255,0.3);
+  }
+  .green-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(108,140,255,0.4);
+  }
+  .outline-button {
+    background: transparent;
+    border: 1px solid #2a3550;
+    color: #e8ecf4;
+  }
+  .outline-button:hover {
+    border-color: #6c8cff;
+    color: #6c8cff;
+  }
+  /* Dialog redesign */
+  .dialog {
+    background: #1a2236;
+    border: 1px solid #2a3550;
+    border-radius: 20px;
+    padding: 32px 32px 24px;
+    max-width: 440px;
+    width: 90vw;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  }
+  .dialog-head {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .dialog-head h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .dialog-copy {
+    color: #8b95b0;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .dialog label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #8b95b0;
+    margin-bottom: 6px;
+    margin-top: 12px;
+  }
+  .dialog input, .dialog textarea, .dialog select {
+    width: 100%;
+    padding: 12px 14px;
+    background: #111827;
+    border: 1px solid #2a3550;
+    border-radius: 10px;
+    color: #e8ecf4;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+  }
+  .dialog input:focus, .dialog textarea:focus, .dialog select:focus {
+    border-color: #6c8cff;
+    box-shadow: 0 0 0 3px rgba(108,140,255,0.15);
+  }
+  .dialog .green-button {
+    width: 100%;
+    padding: 13px;
+    margin-top: 20px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .register-fields {
+    margin-bottom: 8px;
+  }
+  .remember {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #8b95b0;
+  }
+  .remember input {
+    width: auto;
+  }
+  #auth-switch-row {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    color: #8b95b0;
+  }
+  #auth-switch-row button {
+    background: none;
+    border: none;
+    color: #6c8cff;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  #auth-switch-row button:hover {
+    text-decoration: underline;
+  }
+  #auth-status, #profile-status, #settings-status, #verification-status {
+    margin-top: 12px;
+    font-size: 13px;
+    text-align: center;
+  }
+  .close-dialog {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: #8b95b0;
+    font-size: 24px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+  }
+  .close-dialog:hover {
+    background: #2a3550;
+    color: #e8ecf4;
+  }
+  .dialog-head { position: relative; }
+  .modal-backdrop {
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+  }
+</style>
+</head>
+<body>
+<header class="app-header">
+  <a class="app-brand" href="#top">
+    <span class="brand-glyph">✳</span>
+    <span>FreeAI<small>FREE LOCAL AI WORKSPACE</small></span>
+  </a>
+  <div class="header-actions">
+    <span id="profile-label" class="profile-label">Hello, Guest</span>
+    <button id="profile-edit-btn" class="header-button" type="button" hidden>Edit profile</button>
+    <button id="settings-btn" class="header-button" type="button" hidden>Settings</button>
+  </div>
+</header>
+
+<main id="top" class="main-wrapper">
+  <!-- Auth Landing (centered, beautiful) -->
+  <section id="auth-landing" class="auth-landing" hidden>
+    <div class="auth-card">
+      <div class="brand-glyph">✳</div>
+      <p class="eyebrow">FREE LOCAL AI WORKSPACE</p>
+      <h1>Your models.<br><em>Your space.</em></h1>
+      <p>Create an account or sign in to continue. We verify every email before enabling access.</p>
+      <div class="landing-actions">
+        <button id="landing-login" class="green-button" type="button">Sign in</button>
+        <button id="landing-register" class="outline-button" type="button">Create account</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Verification Gate -->
+  <section id="verification-gate" class="auth-landing" hidden>
+    <div class="auth-card">
+      <div class="brand-glyph">✉</div>
+      <p class="eyebrow">EMAIL CONFIRMATION REQUIRED</p>
+      <h1>Check your<br><em>inbox.</em></h1>
+      <p id="verification-copy">Verify your email using the link from noreply before accessing FreeAI.</p>
+      <label for="resend-email" style="display:block;text-align:left;margin-bottom:6px;font-size:13px;color:#8b95b0;">Email address</label>
+      <input id="resend-email" type="email" autocomplete="email" style="margin-bottom:12px;">
+      <button id="resend-verification" class="green-button" type="button" style="width:100%;margin-bottom:12px;">Resend verification email</button>
+      <p id="verification-status" role="status"></p>
+      <button id="gate-back-login" class="text-action" type="button">Back to sign in</button>
+    </div>
+  </section>
+
+  <!-- Account Workspace -->
+  <div id="account-workspace" hidden>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">NO SUBSCRIPTIONS · NO METERED API CALLS</p>
+        <h1>Three models.<br><em>All yours.</em></h1>
+        <p class="hero-lead">Pick three free models already installed on this server, then chat with any of them here.</p>
+      </div>
+      <div class="hero-workspace">
+        <div class="workspace-title">
+          <div>
+            <span class="eyebrow">YOUR TOP SELECTIONS</span>
+            <h2>Choose up to three installed models</h2>
+          </div>
+          <span class="saved-indicator" id="saved-indicator">Sign in to save</span>
+        </div>
+        <div class="slot-grid">
+          <label class="model-slot">
+            <span class="slot-number">01</span>
+            <span class="slot-label">First choice</span>
+            <select id="hero-model-1" aria-label="First model selection">
+              <option value="">Loading available models…</option>
+            </select>
+          </label>
+          <label class="model-slot">
+            <span class="slot-number">02</span>
+            <span class="slot-label">Second choice</span>
+            <select id="hero-model-2" aria-label="Second model selection">
+              <option value="">Loading available models…</option>
+            </select>
+          </label>
+          <label class="model-slot">
+            <span class="slot-number">03</span>
+            <span class="slot-label">Third choice</span>
+            <select id="hero-model-3" aria-label="Third model selection">
+              <option value="">Loading available models…</option>
+            </select>
+          </label>
+        </div>
+        <div class="hero-chat">
+          <div class="chat-heading">
+            <div>
+              <span class="eyebrow">FREE LOCAL CHAT</span>
+              <h2>Ask your selected model</h2>
+            </div>
+            <label class="chat-target">Send to
+              <select id="chat-model" aria-label="Choose selected model">
+                <option value="">Select a model above</option>
+              </select>
+            </label>
+          </div>
+          <div id="chat-messages" class="chat-messages" aria-live="polite">
+            <p class="chat-empty">Choose an installed model to start chatting.</p>
+          </div>
+          <form id="chat-form" class="chat-composer">
+            <textarea id="chat-input" rows="2" maxlength="8000" placeholder="Ask a question…" aria-label="Message" required></textarea>
+            <button id="chat-send" type="submit" disabled>Send <span>↑</span></button>
+          </form>
+          <p id="chat-status" class="chat-status" role="status" aria-live="polite">Only locally installed, no-cost models are shown.</p>
+        </div>
+      </div>
+    </section>
+    <section id="models" class="library-section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">INSTALLED ON THIS SERVER</p>
+          <h2>Available free models</h2>
+        </div>
+        <p>No API keys, paid endpoints, or usage fees.</p>
+      </div>
+      <div id="model-library" class="model-library"></div>
+      <div class="ollama-row">
+        <span id="ollama-status">Checking installed models…</span>
+        <button id="ollama-check" type="button" class="subtle-button">Refresh list</button>
+      </div>
+    </section>
+    <footer class="site-footer">
+      <a class="app-brand" href="#top">
+        <span class="brand-glyph">✳</span>
+        <span>FreeAI<small>FREE LOCAL AI WORKSPACE</small></span>
+      </a>
+      <nav>
+        <a href="#top">Workspace</a>
+        <a href="#models">Available models</a>
+        <button type="button" id="footer-settings">Settings</button>
+        <button type="button" id="footer-profile">Profile</button>
+      </nav>
+      <span class="footer-note">Local inference only · <span id="year"></span></span>
+    </footer>
+  </div>
+</main>
+
+<div class="modal-backdrop" id="modal-backdrop" hidden></div>
+
+<!-- Login Dialog -->
+<section class="dialog" id="login-dialog" role="dialog" aria-modal="true" aria-labelledby="login-title" hidden>
+  <div class="dialog-head">
+    <div>
+      <p class="eyebrow">ACCOUNT</p>
+      <h2 id="login-title">Sign in</h2>
+    </div>
+    <button class="close-dialog" type="button" data-close aria-label="Close">×</button>
+  </div>
+  <p class="dialog-copy">An account is required. Registration requires a verified email address.</p>
+  <form id="auth-form">
+    <div id="register-fields" class="register-fields" hidden>
+      <label for="real-name">Real name</label>
+      <input id="real-name" autocomplete="name">
+      <label for="register-email">Email address</label>
+      <input id="register-email" type="email" autocomplete="email">
+    </div>
+    <label for="username">Username</label>
+    <input id="username" autocomplete="username" minlength="3" required>
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" minlength="10" required>
+    <label class="remember"><input id="remember" type="checkbox" checked> Keep me signed in</label>
+    <button class="green-button" id="auth-submit" type="submit">Sign in</button>
+    <div style="margin:16px 0;display:flex;align-items:center;gap:12px;color:#8b95b0;font-size:12px;">
+      <div style="flex:1;height:1px;background:#2a3550;"></div>
+      <span>or continue with</span>
+      <div style="flex:1;height:1px;background:#2a3550;"></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button type="button" id="google-login-btn" style="flex:1;padding:10px;background:#111827;border:1px solid #2a3550;border-radius:8px;color:#e8ecf4;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Google
+      </button>
+      <button type="button" id="github-login-btn" style="flex:1;padding:10px;background:#111827;border:1px solid #2a3550;border-radius:8px;color:#e8ecf4;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57C20.565 21.795 24 17.31 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </button>
+    </div>
+    <p id="auth-switch-row" style="margin-top:16px;">New here? <button id="auth-switch" type="button">Create account</button></p>
+    <p id="auth-status" role="status"></p>
+  </form>
+</section>
+
+<!-- Profile Dialog -->
+<section class="dialog profile-dialog" id="profile-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-title" hidden>
+  <div class="dialog-head">
+    <div>
+      <p class="eyebrow">ACCOUNT BIODATA</p>
+      <h2 id="profile-title">Edit profile</h2>
+    </div>
+    <button class="close-dialog" type="button" data-close aria-label="Close">×</button>
+  </div>
+  <form id="profile-form">
+    <label for="profile-real-name">Real name</label>
+    <input id="profile-real-name" autocomplete="name" required>
+    <label for="profile-email">Verified email</label>
+    <input id="profile-email" type="email" readonly>
+    <label for="profile-phone">Phone</label>
+    <input id="profile-phone" type="tel" autocomplete="tel">
+    <label for="profile-company">Company / organization</label>
+    <input id="profile-company" autocomplete="organization">
+    <label for="profile-job">Job title</label>
+    <input id="profile-job" autocomplete="organization-title">
+    <label for="profile-country">Country</label>
+    <input id="profile-country" autocomplete="country-name">
+    <label for="profile-bio">About you</label>
+    <textarea id="profile-bio" rows="4" maxlength="1000"></textarea>
+    <button class="green-button" type="submit">Save profile</button>
+    <p id="profile-status" role="status"></p>
+  </form>
+</section>
+
+<!-- Settings Dialog -->
+<section class="dialog settings-dialog" id="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
+  <div class="dialog-head">
+    <div>
+      <p class="eyebrow">PREFERENCES</p>
+      <h2 id="settings-title">Settings</h2>
+    </div>
+    <button class="close-dialog" type="button" data-close aria-label="Close">×</button>
+  </div>
+  <label for="theme">Theme</label>
+  <select id="theme">
+    <option value="dark">Dark</option>
+    <option value="light">Light</option>
+  </select>
+  <p class="settings-copy">FreeAI connects only to free local models already installed on the app server. Paid API providers are disabled.</p>
+  <p id="settings-status" role="status"></p>
+</section>
+</body>
+</html>
