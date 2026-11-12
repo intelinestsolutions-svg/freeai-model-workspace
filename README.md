@@ -149,3 +149,48 @@ APP_BASE_URL=https://yourdomain.com
 ```
 
 > **Security**: Never commit `.env` to version control. Use `.env.example` (included in this repo) as a template with placeholder values. The `.gitignore` already excludes `.env`.
+
+## Adding Models and Router/MCP Configuration
+
+### Adding AI Models
+
+FreeAI connects to locally installed Ollama models. To add models:
+
+1. **Install Ollama** on your server: https://ollama.com/download
+2. **Pull models** you want to use:
+   ```bash
+   ollama pull llama3.2
+   ollama pull qwen2.5
+   ollama pull deepseek-r1
+   ollama pull gemma3
+   ```
+3. **Configure Ollama URL** in `.env` (if not default):
+   ```env
+   OLLAMA_URL=http://127.0.0.1:11434
+   ```
+4. FreeAI automatically detects installed models via Ollama's `/api/tags` endpoint
+5. Users can select up to 3 models from the available list
+
+### Router Configuration (Optional)
+
+If you're behind a reverse proxy (nginx, Caddy, etc.), configure:
+
+```env
+# In .env
+APP_BASE_URL=https://free.prostudio.my
+
+# For nginx reverse proxy:
+# proxy_pass http://127.0.0.1:3000;
+# proxy_set_header Host $host;
+# proxy_set_header X-Forwarded-Proto $scheme;
+```
+
+### MCP (Model Context Protocol) Integration
+
+FreeAI supports MCP for extending model capabilities. To configure:
+
+1. Set up an MCP server on your infrastructure
+2. Configure the MCP endpoint in your environment
+3. FreeAI will connect to MCP servers for enhanced tool use
+
+> **Note**: MCP integration requires additional configuration depending on your MCP server implementation. Refer to the MCP documentation for your specific server.
