@@ -431,24 +431,6 @@ For shared hosting or VPS:
    pm2 startup
    ```
 
-4. **Set up reverse proxy (nginx example):**
-   ```nginx
-   server {
-       listen 443 ssl;
-       server_name free.prostudio.my;
-
-       ssl_certificate /path/to/cert.pem;
-       ssl_certificate_key /path/to/key.pem;
-
-       location / {
-           proxy_pass http://127.0.0.1:3000;
-           proxy_set_header Host $host;
-           proxy_set_header X-Forwarded-Proto $scheme;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-       }
-   }
-   ```
-
 ### Deployment on Hosting Plans
 
 For shared hosting or VPS plans (Hostinger, DigitalOcean, etc.):
