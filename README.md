@@ -271,3 +271,204 @@ pm2 startup
 curl https://free.prostudio.my/api/health
 # Returns: {"ok":true,"storage":"sqlite","emailConfigured":true}
 ```
+
+## Server Deployment Requirements
+
+### Minimum Server Requirements
+- **Node.js**: v22.x or later (v24.x recommended)
+- **npm**: v10.x or later
+- **OS**: Linux, macOS, or Windows (Linux recommended for production)
+- **RAM**: 256MB minimum (512MB+ recommended)
+- **Storage**: 100MB minimum (plus space for SQLite database and logs)
+- **Network**: Port 3000 (or custom via `PORT` env var) must be accessible
+
+### Self-Hosted Deployment
+
+#### 1. Prerequisites
+```bash
+# Check Node.js version
+node --version  # Must be v22.0.0 or later
+
+# Check npm
+npm --version
+```
+
+#### 2. Deploy
+```bash
+# Upload and extract
+unzip freeai.zip -d freeai-app
+cd freeai-app
+
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your settings (SMTP, OAuth, domain)
+
+# Start the server
+node server.mjs
+```
+
+#### 3. Run as a Service (Linux)
+```bash
+# Using PM2 (recommended)
+npm install -g pm2
+pm2 start server.mjs --name freeai
+pm2 startup
+pm2 save
+
+# Or using systemd
+# Create /etc/systemd/system/freeai.service
+```
+
+#### 4. Reverse Proxy (Nginx example)
+```nginx
+server {
+    listen 80;
+    server_name free.prostudio.my;
+    
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+#### 5. SSL (Let's Encrypt)
+```bash
+sudo certbot --nginx -d free.prostudio.my
+```
+
+### Hosting Plan Requirements
+
+For shared hosting or VPS:
+- **Node.js support** (v22+) — required
+- **SSH access** — recommended for setup
+- **Port access** — port 3000 or custom port
+- **Email/SMTP** — for email verification (or use external SMTP like Gmail, Hostinger)
+- **SSL certificate** — for HTTPS (required for OAuth callbacks)
+
+### Recommended Hosting Providers
+
+- **Hostinger** (VPS or Cloud Hosting) — https://www.hostinger.com?REFERRALCODE=GU2INTELI6BI
+  - Affordable VPS with Node.js support
+  - Free SSL certificates
+  - Built-in email hosting
+  - Good for small to medium deployments
+
+### Important Notes
+
+1. **Database**: SQLite is used by default (file-based, no external DB needed). For high traffic, consider MariaDB.
+2. **Email**: SMTP is required for user registration (email verification). Use Hostinger email, Gmail (with App Password), or any SMTP provider.
+3. **OAuth**: Google and GitHub login are optional. Without OAuth credentials, only username/password auth is available.
+4. **Security**: Keep `.env` secure. Never commit it to version control. Use strong passwords for SMTP and OAuth secrets.
+5. **Backups**: Back up `private-data/` directory (contains SQLite DB and encryption key) regularly.
+6. **Updates**: Pull latest changes from GitHub, run `npm install`, restart server.
+7. **Ollama**: FreeAI requires Ollama to be installed and running on the same server for AI model chat. Install from https://ollama.com/download
+
+## Server Requirements & Deployment
+
+### Minimum Server Requirements
+
+| Requirement | Minimum | Recommended |
+|-------------|---------|-------------|
+| Node.js | 22.x (>=22.23.4) | 24.x (>=24.22.1) |
+| RAM | 512 MB | 2 GB+ |
+| Storage | 100 MB (app) + model storage | 10 GB+ |
+| OS | Linux (Ubuntu 22.04+), macOS, Windows | Linux (Ubuntu 22.04+) |
+
+### Required Software
+- **Node.js** >= 22 (with npm)
+- **Ollama** (for local AI models) — https://ollama.com/download
+- **SMTP access** (for email verification) — Hostinger, Gmail, or any SMTP provider
+
+### Optional Software
+- **MariaDB** (alternative to SQLite for larger deployments)
+- **Reverse proxy** (nginx or Caddy) for HTTPS
+- **PM2** or **systemd** for process management
+
+### Deployment Steps (Self-Hosted)
+
+1. **Prepare the server:**
+   ```bash
+   # Install Node.js (Ubuntu/Debian)
+   curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+
+   # Install Ollama
+   curl -fsSL https://ollama.com/install.sh | sh
+
+   # Pull models
+   ollama pull llama3.2
+   ollama pull qwen2.5
+   ```
+
+2. **Deploy the app:**
+   ```bash
+   # Upload freeai.zip to server
+   unzip freeai.zip -d freeai-app
+   cd freeai-app
+   npm install
+   cp .env.example .env
+   # Edit .env with your settings
+   nano .env
+   ```
+
+3. **Start the server:**
+   ```bash
+   # Direct
+   node server.mjs
+
+   # Or with PM2 (recommended for production)
+   npm install -g pm2
+   pm2 start server.mjs --name freeai
+   pm2 save
+   pm2 startup
+   ```
+
+4. **Set up reverse proxy (nginx example):**
+   ```nginx
+   server {
+       listen 443 ssl;
+       server_name free.prostudio.my;
+
+       ssl_certificate /path/to/cert.pem;
+       ssl_certificate_key /path/to/key.pem;
+
+       location / {
+           proxy_pass http://127.0.0.1:3000;
+           proxy_set_header Host $host;
+           proxy_set_header X-Forwarded-Proto $scheme;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       }
+   }
+   ```
+
+### Deployment on Hosting Plans
+
+For shared hosting or VPS plans (Hostinger, DigitalOcean, etc.):
+
+1. **VPS/Dedicated Server**: Full control, install Node.js and Ollama directly
+2. **Shared Hosting**: May not support Node.js — use a VPS instead
+3. **Docker**: Can containerize the app (Dockerfile not included, contributions welcome)
+
+### Important Notes
+
+- **Data directory**: Keep `private-data/` (SQLite DB + encryption key) outside `public_html` and back it up securely
+- **SMTP**: Required for email verification. Use Hostinger email, Gmail (with App Password), or any SMTP provider
+- **OAuth**: Optional. Google and GitHub login require creating OAuth apps and adding credentials to `.env`
+- **Ollama**: Must be running on the server. Models are downloaded via `ollama pull`
+- **Security**: Never commit `.env` to version control. The `.gitignore` already excludes it
+- **Backups**: Back up `private-data/` directory (contains database and encryption key)
+- **Updates**: Pull latest code, run `npm install`, restart server
+
+### Hosting Recommendation
+
+For reliable VPS hosting with good performance for AI workloads, we recommend [Hostinger](https://www.hostinger.com?REFERRALCODE=GU2INTELI6BI) — use this link for a **20% discount**.
+
+> **Disclaimer**: All work in this repository is for hobby, personal use, training, and testing purposes only. Use at your own risk.
